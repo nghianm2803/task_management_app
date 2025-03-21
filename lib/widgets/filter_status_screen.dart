@@ -3,25 +3,45 @@ import 'package:get/get.dart';
 import 'package:task_management_app/core/values/app_colors.dart';
 import 'package:task_management_app/core/values/text_styles.dart';
 
-class FilterStatusScreen extends StatelessWidget {
+class FilterStatusScreen extends StatefulWidget {
   final Function(String) onSelected;
-  final String selectedValue;
+  final String initialValue;
 
   const FilterStatusScreen({
-    Key? key,
+    super.key,
     required this.onSelected,
-    required this.selectedValue,
-  }) : super(key: key);
+    required this.initialValue,
+  });
+
+  @override
+  _FilterStatusScreenState createState() => _FilterStatusScreenState();
+}
+
+class _FilterStatusScreenState extends State<FilterStatusScreen> {
+  late String selectedValue;
+
+  @override
+  void initState() {
+    super.initState();
+    selectedValue = widget.initialValue;
+  }
+
+  void _selectValue(String value) {
+    setState(() {
+      selectedValue = value;
+    });
+    widget.onSelected(value);
+  }
 
   @override
   Widget build(BuildContext context) {
     return FractionallySizedBox(
-      heightFactor: 0.6,
+      heightFactor: 0.5,
       child: Container(
         padding: const EdgeInsets.all(16),
-        decoration: const BoxDecoration(
-          color: AppColors.gray100,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        decoration: BoxDecoration(
+          color: Get.isDarkMode ? AppColors.gray900 : AppColors.gray100,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -33,72 +53,47 @@ class FilterStatusScreen extends StatelessWidget {
                   onPressed: () => Get.back(),
                   child: Text("Cancel", style: text16w500red500),
                 ),
-                Text("Filter by Status", style: text18w600gray900),
-                const Icon(Icons.done, color: Colors.transparent),
+                Text("Filter by Status", style: Get.isDarkMode ? text18w600white : text18w600gray900),
+                TextButton(
+                  onPressed: () => Get.back(),
+                  child: Text("Done", style: text16w600green400),
+                ),
               ],
             ),
             const SizedBox(height: 10),
             Container(
               decoration: BoxDecoration(
-                color: Colors.white,
                 borderRadius: BorderRadius.circular(10),
+                color: Get.isDarkMode ? AppColors.gray50 : AppColors.white,
               ),
               child: Column(
                 children: [
-                  Container(
-                    decoration: const BoxDecoration(
-                      border: Border(
-                        bottom: BorderSide(
-                          color: AppColors.gray200,
-                          width: 0.5,
-                        ),
-                      ),
-                    ),
-                    child: ListTile(
-                      title: const Text("All", style: TextStyle(fontSize: 16)),
-                      trailing: selectedValue == "all"
-                          ? const Icon(Icons.check, color: Colors.blue)
-                          : null,
-                      onTap: () {
-                        onSelected("all");
-                      },
-                    ),
-                  ),
-                  Container(
-                    decoration: const BoxDecoration(
-                      border: Border(
-                        bottom: BorderSide(
-                          color: AppColors.gray200,
-                          width: 0.5,
-                        ),
-                      ),
-                    ),
-                    child: ListTile(
-                      title: const Text("Completed",
-                          style: TextStyle(fontSize: 16)),
-                      trailing: selectedValue == "completed"
-                          ? const Icon(Icons.check, color: Colors.blue)
-                          : null,
-                      onTap: () {
-                        onSelected("completed");
-                      },
-                    ),
-                  ),
-                  ListTile(
-                    title: const Text("Incomplete",
-                        style: TextStyle(fontSize: 16)),
-                    trailing: selectedValue == "incomplete"
-                        ? const Icon(Icons.check, color: AppColors.blue500)
-                        : null,
-                    onTap: () {
-                      onSelected("incomplete");
-                    },
-                  ),
+                  _buildFilterTile("All", "all"),
+                  _buildFilterTile("Completed", "completed"),
+                  _buildFilterTile("Incomplete", "incomplete"),
                 ],
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildFilterTile(String title, String value) {
+    return Container(
+      decoration: const BoxDecoration(
+        border: Border(
+          bottom: BorderSide(
+            color: AppColors.gray200,
+            width: 0.5,
+          ),
+        ),
+      ),
+      child: ListTile(
+        title: Text(title, style: Get.isDarkMode ? text16w500gray500 : text16w500gray900),
+        trailing: selectedValue == value ? const Icon(Icons.check, color: AppColors.blue500) : null,
+        onTap: () => _selectValue(value),
       ),
     );
   }

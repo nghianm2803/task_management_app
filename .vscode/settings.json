@@ -1,0 +1,9 @@
+{
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.fixAll": "explicit"
+    },
+    "editor.indentSize": "tabSize",
+    "editor.language.brackets": [],
+    "dart.lineLength": 150
+}

@@ -1,16 +1,26 @@
-# task_management_app
-
-A new Flutter project.
-
 ## Getting Started
 
-This project is a starting point for a Flutter application.
+### Installation
 
-A few resources to get you started if this is your first Flutter project:
+1. Clone the repo
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+   ```sh
+   git clone https://github.com/nghianm2803/task_management_app
+   ```
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+2. Install packages
+   ```sh
+   flutter pub get
+   ```
+
+## Features and Specifications
+
+Tasks:
+
+- Users can view all tasks
+- Users can view a single task with its status
+- Users can create, update or delete a specific task
+- Users can search task by name
+- Users can filter task by status (All, Compeleted, Incomplete)
+- Users can sort task by due date
+- Users can change theme to light or dark

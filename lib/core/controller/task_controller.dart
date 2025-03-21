@@ -1,7 +1,10 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:task_management_app/core/model/task_model.dart';
 import 'package:task_management_app/core/services/database_service.dart';
 import 'package:task_management_app/core/values/app_colors.dart';
+import 'package:task_management_app/core/values/app_constant.dart';
 
 class TaskController extends GetxController {
   var tasks = <Task>[].obs;
@@ -13,9 +16,33 @@ class TaskController extends GetxController {
   final _searchText = "".obs;
   String get searchText => _searchText.value;
 
+  Rx<ThemeMode> themeMode = ThemeMode.light.obs;
+  RxBool isDarkMode = false.obs;
+
+  void loadTheme() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedTheme = prefs.getString(SharePrefKeys.keyTheme) ?? 'light';
+
+    isDarkMode.value = savedTheme == 'dark';
+    themeMode.value = isDarkMode.value ? ThemeMode.dark : ThemeMode.light;
+    Get.changeThemeMode(themeMode.value);
+  }
+
+  void updateTheme(bool isDark) async {
+    isDarkMode.value = isDark;
+    themeMode.value = isDark ? ThemeMode.dark : ThemeMode.light;
+    Get.changeThemeMode(themeMode.value);
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(SharePrefKeys.keyTheme, isDark ? 'dark' : 'light');
+
+    update();
+  }
+
   @override
   void onInit() {
     super.onInit();
+    loadTheme();
     fetchTasks();
   }
 
@@ -26,15 +53,11 @@ class TaskController extends GetxController {
     filteredTasks.assignAll(fetchedTasks);
   }
 
-  void saveTask(
-      {int? id,
-      required String title,
-      String? description,
-      DateTime? dueDate}) async {
+  void saveTask({int? id, required String title, String? description, DateTime? dueDate}) async {
     if (title.isEmpty) {
       Get.snackbar(
-        "Lỗi",
-        "Vui lòng nhập tiêu đề",
+        "Error",
+        "Please title can not be empty",
         snackPosition: SnackPosition.TOP,
         backgroundColor: AppColors.red200,
         borderColor: AppColors.red500,
@@ -52,9 +75,7 @@ class TaskController extends GetxController {
       description: description ?? "",
       status: id == null ? 0 : tasks.firstWhere((t) => t.id == id).status,
       dueDate: dueDate.toIso8601String(),
-      createdAt: id == null
-          ? DateTime.now().toIso8601String()
-          : tasks.firstWhere((t) => t.id == id).createdAt,
+      createdAt: id == null ? DateTime.now().toIso8601String() : tasks.firstWhere((t) => t.id == id).createdAt,
       updatedAt: DateTime.now().toIso8601String(),
     );
 
@@ -78,6 +99,7 @@ class TaskController extends GetxController {
       );
     });
 
+    Get.back();
     Get.back();
   }
 
@@ -111,11 +133,9 @@ class TaskController extends GetxController {
   void sortTasks(String value) {
     sortBy.value = value;
     if (value == "oldest") {
-      filteredTasks.sort((a, b) =>
-          DateTime.parse(a.dueDate).compareTo(DateTime.parse(b.dueDate)));
+      filteredTasks.sort((a, b) => DateTime.parse(a.dueDate).compareTo(DateTime.parse(b.dueDate)));
     } else if (value == "newest") {
-      filteredTasks.sort((a, b) =>
-          DateTime.parse(b.dueDate).compareTo(DateTime.parse(a.dueDate)));
+      filteredTasks.sort((a, b) => DateTime.parse(b.dueDate).compareTo(DateTime.parse(a.dueDate)));
     }
     update();
   }
@@ -138,12 +158,41 @@ class TaskController extends GetxController {
       filteredTasks.assignAll(tasks);
     } else {
       filteredTasks.assignAll(
-        tasks
-            .where((task) =>
-                task.title.toLowerCase().contains(query.toLowerCase()))
-            .toList(),
+        tasks.where((task) => task.title.toLowerCase().contains(query.toLowerCase())).toList(),
       );
     }
+    update();
+  }
+
+  void duplicateTask(Task task) {
+    final newTask = Task(
+      title: task.title,
+      description: task.description,
+      status: 0,
+      dueDate: task.dueDate,
+      createdAt: DateTime.now().toIso8601String(),
+      updatedAt: DateTime.now().toIso8601String(),
+    );
+
+    addTask(newTask);
+    Get.snackbar(
+      "Success",
+      "Task duplicated successfully!",
+      snackPosition: SnackPosition.TOP,
+      backgroundColor: AppColors.success100,
+      borderColor: AppColors.green500,
+      borderWidth: 0.5,
+      colorText: AppColors.green500,
+    );
+  }
+
+  Future<void> resetAll() async {
+    sortBy.value = "oldest";
+    filterBy.value = "all";
+    updateTheme(false);
+    fetchTasks();
+    filteredTasks.assignAll(tasks);
+    sortTasks("oldest");
     update();
   }
 }
